@@ -11,8 +11,8 @@ through your favorite terminal.
 - `clitt abort`- aborts and deletes irreversively the current session
 - `clitt edit <id> --description --start --end` - edits an existing session
 - `clitt delete  <id>` - deletes an existing session
-- `clitt description add` - adds a description to the current session
-- `clitt description list` shows all descriptions
+- `clitt task add` - adds a description to the current session
+- `clitt task list` shows all descriptions
 - `clitt describe` shows all sessions
 - `clitt export)` generates an excel file with all recorded sessions
 
