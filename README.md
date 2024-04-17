@@ -1,4 +1,5 @@
-exit
+# Clitt - CLI (based) Time Tracking
+
 
 A cli based time tracking tool for freelancers that makes tracking your working time easy and exports it to excel - all
 through your favorite terminal.
