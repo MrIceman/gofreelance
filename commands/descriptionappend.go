@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func AppendDescription(storage EntriesStorage, description string) error {
+func AppendTask(storage EntriesStorage, description string) error {
 	record, err := storage.GetCurrentRecord()
 	if err != nil {
 		return err
@@ -13,7 +13,7 @@ func AppendDescription(storage EntriesStorage, description string) error {
 	if record == nil {
 		return ErrNoActiveRecord
 	}
-	record.Descriptions = append(record.Descriptions, model.RecordDescriptionEntry{
+	record.Tasks = append(record.Tasks, model.Task{
 		Text: description,
 		Time: time.Now(),
 	})

@@ -5,12 +5,13 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/xuri/excelize/v2"
+	"gofreelance/internals/index"
 	"gofreelance/model"
 	"os"
 	"strings"
 )
 
-//go:embed template.xlsx
+//go:embed clitt-templ.xlsx
 var template []byte
 
 func SaveAsExcel(r *model.RecordDataSet) error {
@@ -19,38 +20,41 @@ func SaveAsExcel(r *model.RecordDataSet) error {
 	if err != nil {
 		return fmt.Errorf("failed to open excel template: %s", err.Error())
 	}
-	for k, entries := range r.Entries {
-		id, err := excelF.NewSheet(k)
-		if err := excelF.CopySheet(0, id); err != nil {
-			return err
-		}
+	sheetName := index.Current()
+	sheetID, _ := excelF.GetSheetIndex(sheetName)
+	// sheet does not exist, let's create a new one
+	if sheetID == -1 {
+		sheetID, err = excelF.NewSheet(sheetName)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to set sheet name: %s", err.Error())
 		}
-		excelF.DeleteSheet("Sheet1")
-		err = excelF.SetColWidth(k, "A", "D", 30)
-		if err != nil {
-			return fmt.Errorf("failed to set col width: %s", err.Error())
+		// copy the template to the new sheet
+		if err := excelF.CopySheet(0, sheetID); err != nil {
+			return fmt.Errorf("failed to copy sheet: %s", err.Error())
 		}
-		workTime := 0.0
-		_ = excelF.SetColStyle(k, "A", id)
-		_ = excelF.SetCellValue(k, "A1", "Date")
-		_ = excelF.SetCellValue(k, "B1", "Description")
-		_ = excelF.SetCellValue(k, "C1", "Duration (Minutes)")
-		_ = excelF.SetCellValue(k, "D", "Total (Hours)")
-
-		for idx, e := range entries {
-			_ = excelF.SetCellValue(k, fmt.Sprintf("A%d", idx+2), e.Started)
-			_ = excelF.SetCellValue(k, fmt.Sprintf("B%d", idx+2), getDescriptions(e.Descriptions))
-			if e.Ended != nil {
-				minutes := e.Ended.Sub(*e.Started).Minutes()
-				workTime += minutes
-				_ = excelF.SetCellValue(k, fmt.Sprintf("C%d", idx+2), minutes)
-			}
-			_ = excelF.SetCellValue(k, fmt.Sprintf("D%d", idx+2), workTime/60)
-		}
-
 	}
+	excelF.SetActiveSheet(sheetID)
+
+	workTime := 0.0
+	currentEntries := r.Entries[sheetName]
+	for _, e := range currentEntries {
+		offset := 11
+		recordTime := 0.0
+		_ = excelF.SetCellValue(sheetName, fmt.Sprintf("A%d", offset), fmt.Sprintf("%s", e.Started.Format("2006-01-02")))
+		_ = excelF.SetCellValue(sheetName, fmt.Sprintf("C%d", offset), getTaskEntries(e.Tasks))
+		if e.Ended != nil {
+			minutes := e.Ended.Sub(*e.Started).Minutes()
+			recordTime += minutes
+		}
+		var taskList string
+		for _, t := range e.Tasks {
+			taskList += fmt.Sprintf("%s - ", t.Text)
+		}
+		_ = excelF.SetCellValue(sheetName, fmt.Sprintf("D%d", offset), recordTime/60)
+		offset++
+		workTime += recordTime
+	}
+	_ = excelF.SetCellValue(sheetName, fmt.Sprintf("B8"), workTime/60)
 
 	if _, err := excelF.WriteTo(f); err != nil {
 		return fmt.Errorf("failed to write excel: %s", err)
@@ -58,7 +62,7 @@ func SaveAsExcel(r *model.RecordDataSet) error {
 	return f.Close()
 }
 
-func getDescriptions(r []model.RecordDescriptionEntry) string {
+func getTaskEntries(r []model.Task) string {
 	var descriptions []string
 	for _, d := range r {
 		descriptions = append(descriptions, d.Text)

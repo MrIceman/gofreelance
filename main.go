@@ -11,7 +11,7 @@ func main() {
 	handler := NewHandler(data.NewDefaultEntriesHandler())
 
 	if len(args) == 0 {
-		log.Println("no arguments passed in, use 'help' to see available commands")
+		log.Println("no arguments passed in, use 'help' to see available commands. Thanks!")
 		return
 	}
 	if err := handler.Handle(args...); err != nil {

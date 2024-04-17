@@ -3,14 +3,14 @@ package commands
 import "slices"
 
 const (
-	DescriptionActionAdd    = "add"
+	TaskAdd                 = "add"
 	DescriptionActionDelete = "delete"
 	DescriptionActionList   = "list"
 )
 
 var (
 	actions = []string{
-		DescriptionActionAdd,
+		TaskAdd,
 		DescriptionActionDelete,
 		DescriptionActionList,
 	}

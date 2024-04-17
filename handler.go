@@ -24,6 +24,24 @@ func NewHandler(storage *data.Storage) *Handler {
 
 func (h *Handler) Handle(arg ...string) error {
 	cmd := arg[0]
+	if cmd == "help" {
+		log.Println(`
+## Here's how to use Clitt.
+## Available commands for records:
+- start: start a new record (if there is no active record)
+- stop: stop the current record
+- continue: set the last record as active again
+## Available commands for tasks:
+- task add <value>: add a task to the current record
+## Available commands for export:
+- export: export the records to an excel file
+		
+
+
+	`)
+		return nil
+
+	}
 	if cmd == "start" {
 		log.Println("starting record")
 		id, err := h.create()
@@ -41,20 +59,20 @@ func (h *Handler) Handle(arg ...string) error {
 		log.Println("setting last record to active again")
 		return h.continueLastRecord()
 	}
-	if cmd == "description" {
+	if cmd == "task" {
 		if len(arg) < 2 {
-			return errors.New("missing action argument, see description help")
+			return errors.New("missing action argument, see task help")
 		}
 		action := arg[1]
 		if ok := commands.ValidateDescriptionAction(action); !ok {
-			return fmt.Errorf("%cmd is not a valid description action", action)
+			return fmt.Errorf("%s cmd is not a valid task action", action)
 		}
-		if action == commands.DescriptionActionAdd {
+		if action == commands.TaskAdd {
 			v := strings.Join(arg[2:], " ")
 			if v == "" {
-				return errors.New("missing description - the syntax is gof description add <value>")
+				return errors.New("missing task - the syntax is gof task add <value>")
 			}
-			err := commands.AppendDescription(h.storage, v)
+			err := commands.AppendTask(h.storage, v)
 			if err != nil {
 				return err
 			}
